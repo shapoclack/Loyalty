@@ -1,6 +1,7 @@
 package org.example.db;
 
 import org.example.config.DbConfig;
+import org.example.exception.DataAccessException;
 
 import java.io.IOException;
 import java.io.InputStream;

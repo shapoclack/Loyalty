@@ -1,9 +1,11 @@
 package org.example.repository;
 
 import org.example.db.Jdbc;
+import org.example.db.QueryBuilder;
 import org.example.model.AccountStatus;
 import org.example.model.LoyaltyAccount;
 import org.example.model.Tier;
+import org.example.model.query.AccountSort;
 
 import java.math.BigDecimal;
 import java.sql.Connection;
@@ -44,6 +46,18 @@ public class AccountRepository {
     public List<LoyaltyAccount> findByCustomer(Connection c, int customerId) {
         return Jdbc.query(c, "SELECT * FROM loyalty_account WHERE customer_id = ? ORDER BY account_id",
                 AccountRepository::map, customerId);
+    }
+
+    public List<LoyaltyAccount> findAll(Connection c, Tier tier, AccountStatus status, AccountSort sort) {
+        QueryBuilder query = new QueryBuilder("SELECT * FROM loyalty_account")
+                .where("tier = ?", tier)
+                .where("status = ?", status)
+                .orderBy(sort.orderBy());
+        return Jdbc.query(c, query.sql(), AccountRepository::map, query.params());
+    }
+
+    public void deleteByCustomer(Connection c, int customerId) {
+        Jdbc.update(c, "DELETE FROM loyalty_account WHERE customer_id = ?", customerId);
     }
 
     public void updateBalance(Connection c, int id, BigDecimal balance) {

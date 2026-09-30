@@ -1,5 +1,6 @@
 package org.example.service;
 
+import org.example.exception.EntityNotFoundException;
 import org.example.model.AccrualRequest;
 import org.example.model.AccrualRule;
 import org.example.model.Customer;
@@ -46,7 +47,7 @@ public class AccrualService {
     /** Создаёт заявку на начисление по операции и сразу обрабатывает её. */
     AccrualRequest accrue(Connection c, int accountId, SourceOperation operation, BigDecimal baseAmount) {
         LoyaltyAccount account = accounts.lockById(c, accountId)
-                .orElseThrow(() -> new LoyaltyException("Счёт #" + accountId + " не найден"));
+                .orElseThrow(() -> new EntityNotFoundException("Счёт #" + accountId + " не найден"));
         Customer customer = customers.findById(c, account.customerId()).orElseThrow();
 
         Optional<Candidate> best = account.isActive() && customer.isActive()

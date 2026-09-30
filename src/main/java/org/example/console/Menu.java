@@ -1,7 +1,8 @@
 package org.example.console;
 
-import org.example.db.DataAccessException;
-import org.example.service.LoyaltyException;
+import org.example.exception.BusinessException;
+import org.example.exception.DataAccessException;
+import org.example.exception.ExportException;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -70,10 +71,12 @@ public class Menu {
         }
         try {
             item.action().run();
-        } catch (LoyaltyException e) {
+        } catch (BusinessException e) {
             io.error(e.getMessage());
         } catch (DataAccessException e) {
             io.error("Ошибка базы данных: " + e.getMessage());
+        } catch (ExportException e) {
+            io.error("Ошибка экспорта: " + e.getMessage());
         }
     }
 }

@@ -28,6 +28,15 @@ public class AccrualRuleRepository {
         return Jdbc.query(c, "SELECT * FROM accrual_rule WHERE is_active ORDER BY rule_id", AccrualRuleRepository::map);
     }
 
+    /** Использовалось ли правило хотя бы в одной заявке. */
+    public boolean isUsed(Connection c, int id) {
+        return Jdbc.queryOne(c, "SELECT 1 FROM accrual_request WHERE rule_id = ? LIMIT 1", rs -> true, id).isPresent();
+    }
+
+    public int delete(Connection c, int id) {
+        return Jdbc.update(c, "DELETE FROM accrual_rule WHERE rule_id = ?", id);
+    }
+
     public int setActive(Connection c, int id, boolean active) {
         return Jdbc.update(c, "UPDATE accrual_rule SET is_active = ? WHERE rule_id = ?", active, id);
     }

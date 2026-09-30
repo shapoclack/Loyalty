@@ -1,5 +1,7 @@
 package org.example.db;
 
+import org.example.exception.DataAccessException;
+
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -20,12 +22,15 @@ public final class Jdbc {
     }
 
     public static <T> List<T> query(Connection c, String sql, RowMapper<T> mapper, Object... params) {
-        try (PreparedStatement ps = prepare(c, sql, params); ResultSet rs = ps.executeQuery()) {
-            List<T> result = new ArrayList<>();
-            while (rs.next()) {
-                result.add(mapper.map(rs));
+        try (PreparedStatement ps = c.prepareStatement(sql)) {
+            bind(ps, params);
+            try (ResultSet rs = ps.executeQuery()) {
+                List<T> result = new ArrayList<>();
+                while (rs.next()) {
+                    result.add(mapper.map(rs));
+                }
+                return result;
             }
-            return result;
         } catch (SQLException e) {
             throw new DataAccessException(e);
         }
@@ -43,19 +48,18 @@ public final class Jdbc {
     }
 
     public static int update(Connection c, String sql, Object... params) {
-        try (PreparedStatement ps = prepare(c, sql, params)) {
+        try (PreparedStatement ps = c.prepareStatement(sql)) {
+            bind(ps, params);
             return ps.executeUpdate();
         } catch (SQLException e) {
             throw new DataAccessException(e);
         }
     }
 
-    private static PreparedStatement prepare(Connection c, String sql, Object... params) throws SQLException {
-        PreparedStatement ps = c.prepareStatement(sql);
+    private static void bind(PreparedStatement ps, Object... params) throws SQLException {
         for (int i = 0; i < params.length; i++) {
             Object value = params[i] instanceof Enum<?> e ? e.name() : params[i];
             ps.setObject(i + 1, value);
         }
-        return ps;
     }
 }

@@ -23,6 +23,10 @@ public class TransactionRepository {
                 accountId, accrualRequestId, redemptionRequestId, type, amount, balanceAfter);
     }
 
+    public List<BonusTransaction> findAll(Connection c) {
+        return Jdbc.query(c, "SELECT * FROM bonus_transaction ORDER BY transaction_id", TransactionRepository::map);
+    }
+
     public List<BonusTransaction> findByAccount(Connection c, int accountId) {
         return Jdbc.query(c, "SELECT * FROM bonus_transaction WHERE account_id = ? ORDER BY transaction_id",
                 TransactionRepository::map, accountId);

@@ -9,6 +9,7 @@ import org.example.model.Customer;
 import org.example.model.CustomerStatus;
 import org.example.model.LoyaltyAccount;
 import org.example.model.SourceOperation;
+import org.example.model.query.CustomerSort;
 import org.example.service.AccountService;
 import org.example.service.CustomerService;
 
@@ -34,10 +35,12 @@ public class CustomerSection implements MenuSection {
     @Override
     public void fill(Menu menu) {
         menu.add("Зарегистрировать клиента", this::register)
+                .add("Список клиентов (фильтр и сортировка)", this::list)
                 .add("Найти клиентов", this::search)
                 .add("Карточка клиента", this::card)
                 .add("Открыть дополнительный счёт", this::openAccount)
-                .add("Заблокировать / разблокировать клиента", this::toggleStatus);
+                .add("Заблокировать / разблокировать клиента", this::toggleStatus)
+                .add("Удалить клиента (только без операций)", this::delete);
     }
 
     private void register() {
@@ -48,6 +51,12 @@ public class CustomerSection implements MenuSection {
         CustomerService.Registration result = customers.register(name, phone, email, birthDate);
         io.success("Клиент #" + result.customer().id() + " зарегистрирован. Номер карты: "
                 + result.account().cardNumber());
+    }
+
+    private void list() {
+        CustomerStatus status = io.chooseOrAny("Статус", List.of(CustomerStatus.values()), Enum::name);
+        CustomerSort sort = io.choose("Сортировка", List.of(CustomerSort.values()), CustomerSort::label);
+        printCustomers(customers.list(status, sort));
     }
 
     private void search() {
@@ -88,6 +97,14 @@ public class CustomerSection implements MenuSection {
         if (io.confirm("Клиент сейчас " + customer.status() + ". Перевести в " + next + "?")) {
             customers.setStatus(customer.id(), next);
             io.success("Статус клиента: " + next);
+        }
+    }
+
+    private void delete() {
+        Customer customer = customers.getByPhone(io.text("Телефон клиента"));
+        if (io.confirm("Удалить клиента «" + customer.fullName() + "» и его счета безвозвратно?")) {
+            customers.delete(customer.id());
+            io.success("Клиент #" + customer.id() + " удалён");
         }
     }
 

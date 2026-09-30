@@ -37,3 +37,8 @@ build/
 
 ### Mac OS ###
 .DS_Store
+### Выгрузки Excel ###
+/exports/
+
+### Описание проекта (локально) ###
+/docs/PROJECT_DESCRIPTION.md

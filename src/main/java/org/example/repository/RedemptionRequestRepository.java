@@ -40,6 +40,10 @@ public class RedemptionRequestRepository {
                 RedemptionRequestRepository::map, RequestStatus.PENDING);
     }
 
+    public List<RedemptionRequest> findAll(Connection c) {
+        return Jdbc.query(c, "SELECT * FROM redemption_request ORDER BY request_id", RedemptionRequestRepository::map);
+    }
+
     public List<RedemptionRequest> findByAccount(Connection c, int accountId) {
         return Jdbc.query(c, "SELECT * FROM redemption_request WHERE account_id = ? ORDER BY request_id",
                 RedemptionRequestRepository::map, accountId);

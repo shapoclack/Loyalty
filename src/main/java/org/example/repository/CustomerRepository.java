@@ -1,8 +1,10 @@
 package org.example.repository;
 
 import org.example.db.Jdbc;
+import org.example.db.QueryBuilder;
 import org.example.model.Customer;
 import org.example.model.CustomerStatus;
+import org.example.model.query.CustomerSort;
 
 import java.sql.Connection;
 import java.sql.ResultSet;
@@ -37,8 +39,15 @@ public class CustomerRepository {
                 ORDER BY customer_id""", CustomerRepository::map, pattern, pattern, pattern);
     }
 
-    public List<Customer> findAll(Connection c) {
-        return Jdbc.query(c, "SELECT * FROM customer ORDER BY customer_id", CustomerRepository::map);
+    public List<Customer> findAll(Connection c, CustomerStatus status, CustomerSort sort) {
+        QueryBuilder query = new QueryBuilder("SELECT * FROM customer")
+                .where("status = ?", status)
+                .orderBy(sort.orderBy());
+        return Jdbc.query(c, query.sql(), CustomerRepository::map, query.params());
+    }
+
+    public void delete(Connection c, int id) {
+        Jdbc.update(c, "DELETE FROM customer WHERE customer_id = ?", id);
     }
 
     public void updateStatus(Connection c, int id, CustomerStatus status) {

@@ -3,12 +3,23 @@ package org.example;
 import org.example.config.DbConfig;
 import org.example.console.ConsoleIO;
 import org.example.console.LoyaltyConsole;
-import org.example.db.DataAccessException;
 import org.example.db.Database;
+
+import java.nio.file.Path;
+import org.example.exception.DataAccessException;
 
 public class Main {
 
+    /** Каталог выгрузок Excel; переопределяется переменной окружения LOYALTY_EXPORT_DIR. */
+    private static final String DEFAULT_EXPORT_DIR = "exports";
+
     public static void main(String[] args) {
+        System.setProperty("java.awt.headless", "true");
+        // Apache POI пишет логи через Log4j API; без этого он жалуется на отсутствие реализации логгера.
+        if (System.getProperty("log4j.provider") == null) {
+            System.setProperty("log4j.provider", "org.apache.logging.log4j.simple.internal.SimpleProvider");
+        }
+
         DbConfig config = DbConfig.load();
         Database db = new Database(config);
         try {
@@ -22,6 +33,7 @@ public class Main {
         }
 
         ConsoleIO io = new ConsoleIO();
-        new LoyaltyConsole(io, new AppContext(db, io).sections()).run();
+        Path exportDir = Path.of(System.getenv().getOrDefault("LOYALTY_EXPORT_DIR", DEFAULT_EXPORT_DIR));
+        new LoyaltyConsole(io, new AppContext(db, exportDir, io).sections()).run();
     }
 }

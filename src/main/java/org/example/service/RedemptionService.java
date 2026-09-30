@@ -1,6 +1,8 @@
 package org.example.service;
 
 import org.example.db.Database;
+import org.example.exception.BusinessException;
+import org.example.exception.EntityNotFoundException;
 import org.example.model.Customer;
 import org.example.model.LoyaltyAccount;
 import org.example.model.RedemptionRequest;
@@ -81,33 +83,33 @@ public class RedemptionService {
     }
 
     RedemptionRule currentRule(Connection c) {
-        return findCurrentRule(c).orElseThrow(() -> new LoyaltyException("Нет активного правила списания"));
+        return findCurrentRule(c).orElseThrow(() -> new BusinessException("Нет активного правила списания"));
     }
 
     RedemptionRequest create(Connection c, int accountId, int operationId, BigDecimal amount) {
         LoyaltyAccount account = accounts.findById(c, accountId)
-                .orElseThrow(() -> new LoyaltyException("Счёт #" + accountId + " не найден"));
+                .orElseThrow(() -> new EntityNotFoundException("Счёт #" + accountId + " не найден"));
         Customer customer = customers.findById(c, account.customerId()).orElseThrow();
         if (!account.isActive() || !customer.isActive()) {
-            throw new LoyaltyException("Счёт или клиент заблокирован — списание невозможно");
+            throw new BusinessException("Счёт или клиент заблокирован — списание невозможно");
         }
         SourceOperation operation = operations.findById(c, operationId)
-                .orElseThrow(() -> new LoyaltyException("Операция #" + operationId + " не найдена"));
+                .orElseThrow(() -> new EntityNotFoundException("Операция #" + operationId + " не найдена"));
         if (operation.customerId() != account.customerId()) {
-            throw new LoyaltyException("Операция принадлежит другому клиенту");
+            throw new BusinessException("Операция принадлежит другому клиенту");
         }
         RedemptionRule rule = currentRule(c);
         BigDecimal bonus = Money.bonus(amount);
         if (bonus.signum() <= 0) {
-            throw new LoyaltyException("Сумма списания должна быть больше нуля");
+            throw new BusinessException("Сумма списания должна быть больше нуля");
         }
         if (bonus.compareTo(rule.minAmount()) < 0) {
-            throw new LoyaltyException("Минимальная сумма списания: " + rule.minAmount());
+            throw new BusinessException("Минимальная сумма списания: " + rule.minAmount());
         }
         BigDecimal reserved = requests.sumReservedForOperation(c, operation.id());
         BigDecimal limit = limit(rule, account.balance(), operation.amount(), reserved);
         if (bonus.compareTo(limit) > 0) {
-            throw new LoyaltyException("Можно списать не более " + limit + " бонусов");
+            throw new BusinessException("Можно списать не более " + limit + " бонусов");
         }
         return requests.insert(c, account.id(), account.customerId(), rule.id(), operation.id(), bonus);
     }
@@ -121,10 +123,10 @@ public class RedemptionService {
         }
         LoyaltyAccount account = accounts.lockById(c, request.accountId()).orElseThrow();
         if (!account.isActive()) {
-            throw new LoyaltyException("Счёт заблокирован — списание невозможно");
+            throw new BusinessException("Счёт заблокирован — списание невозможно");
         }
         if (account.balance().compareTo(request.bonusAmount()) < 0) {
-            throw new LoyaltyException("Недостаточно бонусов: на счёте " + account.balance());
+            throw new BusinessException("Недостаточно бонусов: на счёте " + account.balance());
         }
         BigDecimal newBalance = account.balance().subtract(request.bonusAmount());
         accounts.updateBalance(c, account.id(), newBalance);
@@ -135,9 +137,9 @@ public class RedemptionService {
 
     private RedemptionRequest lockPending(Connection c, int requestId) {
         RedemptionRequest request = requests.lockById(c, requestId)
-                .orElseThrow(() -> new LoyaltyException("Заявка #" + requestId + " не найдена"));
+                .orElseThrow(() -> new EntityNotFoundException("Заявка #" + requestId + " не найдена"));
         if (request.status() != RequestStatus.PENDING) {
-            throw new LoyaltyException("Заявка уже обработана, статус: " + request.status());
+            throw new BusinessException("Заявка уже обработана, статус: " + request.status());
         }
         return request;
     }

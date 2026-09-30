@@ -1,8 +1,11 @@
 package org.example.repository;
 
 import org.example.db.Jdbc;
+import org.example.db.QueryBuilder;
 import org.example.model.OperationType;
 import org.example.model.SourceOperation;
+import org.example.model.query.OperationFilter;
+import org.example.model.query.OperationSort;
 
 import java.math.BigDecimal;
 import java.sql.Connection;
@@ -35,6 +38,16 @@ public class OperationRepository {
     public List<SourceOperation> findByCustomer(Connection c, int customerId) {
         return Jdbc.query(c, "SELECT * FROM source_operation WHERE customer_id = ? ORDER BY operation_date, operation_id",
                 OperationRepository::map, customerId);
+    }
+
+    public List<SourceOperation> find(Connection c, OperationFilter filter, OperationSort sort) {
+        QueryBuilder query = new QueryBuilder("SELECT * FROM source_operation")
+                .where("operation_date >= ?", filter.from() == null ? null : filter.from().atStartOfDay())
+                .where("operation_date < ?", filter.to() == null ? null : filter.to().plusDays(1).atStartOfDay())
+                .where("store_code = ?", filter.storeCode())
+                .where("amount >= ?", filter.minAmount())
+                .orderBy(sort.orderBy());
+        return Jdbc.query(c, query.sql(), OperationRepository::map, query.params());
     }
 
     public BigDecimal sumByCustomer(Connection c, int customerId, OperationType type) {

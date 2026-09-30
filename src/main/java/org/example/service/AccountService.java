@@ -1,12 +1,16 @@
 package org.example.service;
 
 import org.example.db.Database;
+import org.example.exception.BusinessException;
+import org.example.exception.EntityNotFoundException;
 import org.example.model.AccountStatus;
 import org.example.model.AccrualRequest;
 import org.example.model.BonusTransaction;
 import org.example.model.Customer;
 import org.example.model.LoyaltyAccount;
 import org.example.model.RedemptionRequest;
+import org.example.model.Tier;
+import org.example.model.query.AccountSort;
 import org.example.repository.AccountRepository;
 import org.example.repository.AccrualRequestRepository;
 import org.example.repository.CustomerRepository;
@@ -43,14 +47,14 @@ public class AccountService {
     public LoyaltyAccount open(int customerId) {
         return db.inTransaction(c -> {
             Customer customer = customers.findById(c, customerId)
-                    .orElseThrow(() -> new LoyaltyException("Клиент #" + customerId + " не найден"));
+                    .orElseThrow(() -> new EntityNotFoundException("Клиент #" + customerId + " не найден"));
             return open(c, customer);
         });
     }
 
     LoyaltyAccount open(Connection c, Customer customer) {
         if (!customer.isActive()) {
-            throw new LoyaltyException("Клиент заблокирован — открыть счёт нельзя");
+            throw new BusinessException("Клиент заблокирован — открыть счёт нельзя");
         }
         for (int i = 0; i < CARD_ATTEMPTS; i++) {
             String card = cardNumbers.next();
@@ -58,7 +62,12 @@ public class AccountService {
                 return accounts.insert(c, customer.id(), card);
             }
         }
-        throw new LoyaltyException("Не удалось подобрать свободный номер карты");
+        throw new BusinessException("Не удалось подобрать свободный номер карты");
+    }
+
+    /** Удаляет все счета клиента; вызывается только для клиента без операций (значит, и без движений по счетам). */
+    void deleteAllOf(Connection c, int customerId) {
+        accounts.deleteByCustomer(c, customerId);
     }
 
     public LoyaltyAccount getByCard(String cardNumber) {
@@ -68,19 +77,24 @@ public class AccountService {
     LoyaltyAccount findByCard(Connection c, String cardNumber) {
         String card = cardNumber == null ? "" : cardNumber.replaceAll("\\s", "");
         return accounts.findByCard(c, card)
-                .orElseThrow(() -> new LoyaltyException("Карта " + card + " не найдена"));
+                .orElseThrow(() -> new EntityNotFoundException("Карта " + card + " не найдена"));
     }
 
     public List<LoyaltyAccount> byCustomer(int customerId) {
         return db.inTransaction(c -> accounts.findByCustomer(c, customerId));
     }
 
+    /** Все счета с фильтром по уровню и статусу (null — без фильтра). */
+    public List<LoyaltyAccount> list(Tier tier, AccountStatus status, AccountSort sort) {
+        return db.inTransaction(c -> accounts.findAll(c, tier, status, sort));
+    }
+
     public void setStatus(int accountId, AccountStatus status) {
         db.inTransactionVoid(c -> {
             LoyaltyAccount account = accounts.lockById(c, accountId)
-                    .orElseThrow(() -> new LoyaltyException("Счёт #" + accountId + " не найден"));
+                    .orElseThrow(() -> new EntityNotFoundException("Счёт #" + accountId + " не найден"));
             if (account.status() == AccountStatus.CLOSED) {
-                throw new LoyaltyException("Счёт закрыт — статус изменить нельзя");
+                throw new BusinessException("Счёт закрыт — статус изменить нельзя");
             }
             accounts.updateStatus(c, accountId, status);
         });

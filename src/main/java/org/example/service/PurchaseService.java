@@ -1,6 +1,7 @@
 package org.example.service;
 
 import org.example.db.Database;
+import org.example.exception.BusinessException;
 import org.example.model.AccrualRequest;
 import org.example.model.LoyaltyAccount;
 import org.example.model.OperationType;
@@ -69,12 +70,12 @@ public class PurchaseService {
     public PurchaseResult purchase(String cardNumber, BigDecimal amount, String externalId, String storeCode,
                                    BigDecimal bonusToRedeem) {
         if (amount == null || amount.signum() <= 0) {
-            throw new LoyaltyException("Сумма покупки должна быть больше нуля");
+            throw new BusinessException("Сумма покупки должна быть больше нуля");
         }
         return db.inTransaction(c -> {
             LoyaltyAccount account = accountService.findByCard(c, cardNumber);
             if (externalId != null && operations.externalIdExists(c, externalId)) {
-                throw new LoyaltyException("Операция с внешним номером " + externalId + " уже зарегистрирована");
+                throw new BusinessException("Операция с внешним номером " + externalId + " уже зарегистрирована");
             }
             SourceOperation operation = operations.insert(c, account.customerId(), OperationType.PURCHASE,
                     externalId, amount, LocalDateTime.now(clock), storeCode);

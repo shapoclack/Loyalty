@@ -9,6 +9,8 @@ import org.example.model.AccountStatus;
 import org.example.model.AccrualRequest;
 import org.example.model.BonusTransaction;
 import org.example.model.LoyaltyAccount;
+import org.example.model.Tier;
+import org.example.model.query.AccountSort;
 import org.example.service.AccountService;
 
 import java.util.List;
@@ -30,7 +32,8 @@ public class AccountSection implements MenuSection {
 
     @Override
     public void fill(Menu menu) {
-        menu.add("Баланс по карте", this::balance)
+        menu.add("Все счета (фильтр и сортировка)", this::list)
+                .add("Баланс по карте", this::balance)
                 .add("История бонусных транзакций", this::transactions)
                 .add("Заявки на начисление и списание", this::requests)
                 .add("Заблокировать / разблокировать счёт", this::toggleStatus);
@@ -38,6 +41,13 @@ public class AccountSection implements MenuSection {
 
     private LoyaltyAccount askAccount() {
         return accounts.getByCard(io.text("Номер карты"));
+    }
+
+    private void list() {
+        Tier tier = io.chooseOrAny("Уровень", List.of(Tier.values()), Enum::name);
+        AccountStatus status = io.chooseOrAny("Статус", List.of(AccountStatus.values()), Enum::name);
+        AccountSort sort = io.choose("Сортировка", List.of(AccountSort.values()), AccountSort::label);
+        CustomerSection.printAccounts(io, accounts.list(tier, status, sort));
     }
 
     private void balance() {

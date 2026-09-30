@@ -35,9 +35,11 @@ public class RuleSection implements MenuSection {
         menu.add("Правила начисления", this::listAccrual)
                 .add("Добавить правило начисления", this::addAccrual)
                 .add("Включить / выключить правило начисления", this::toggleAccrual)
+                .add("Удалить правило начисления", this::deleteAccrual)
                 .add("Правила списания", this::listRedemption)
                 .add("Добавить правило списания", this::addRedemption)
-                .add("Включить / выключить правило списания", this::toggleRedemption);
+                .add("Включить / выключить правило списания", this::toggleRedemption)
+                .add("Удалить правило списания", this::deleteRedemption);
     }
 
     private void listAccrual() {
@@ -98,6 +100,22 @@ public class RuleSection implements MenuSection {
         boolean active = io.confirm("Сделать правило активным? (н — выключить)");
         rules.setRedemptionRuleActive(id, active);
         io.success("Правило #" + id + (active ? " включено" : " выключено"));
+    }
+
+    private void deleteAccrual() {
+        int id = io.integer("ID правила");
+        if (io.confirm("Удалить правило начисления #" + id + "?")) {
+            rules.deleteAccrualRule(id);
+            io.success("Правило #" + id + " удалено");
+        }
+    }
+
+    private void deleteRedemption() {
+        int id = io.integer("ID правила");
+        if (io.confirm("Удалить правило списания #" + id + "?")) {
+            rules.deleteRedemptionRule(id);
+            io.success("Правило #" + id + " удалено");
+        }
     }
 
     private static LocalDateTime startOf(LocalDate date) {

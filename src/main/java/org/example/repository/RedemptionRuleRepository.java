@@ -34,6 +34,15 @@ public class RedemptionRuleRepository {
                 RedemptionRuleRepository::map);
     }
 
+    /** Использовалось ли правило хотя бы в одной заявке. */
+    public boolean isUsed(Connection c, int id) {
+        return Jdbc.queryOne(c, "SELECT 1 FROM redemption_request WHERE rule_id = ? LIMIT 1", rs -> true, id).isPresent();
+    }
+
+    public int delete(Connection c, int id) {
+        return Jdbc.update(c, "DELETE FROM redemption_rule WHERE rule_id = ?", id);
+    }
+
     public int setActive(Connection c, int id, boolean active) {
         return Jdbc.update(c, "UPDATE redemption_rule SET is_active = ? WHERE rule_id = ?", active, id);
     }

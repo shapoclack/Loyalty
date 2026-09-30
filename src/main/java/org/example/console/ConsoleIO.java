@@ -147,6 +147,24 @@ public class ConsoleIO {
         }
     }
 
+    /** Выбор варианта или «любой» (0) — тогда возвращается null. */
+    public <T> T chooseOrAny(String prompt, List<T> options, Function<T, String> label) {
+        out.println("  0. любой");
+        for (int i = 0; i < options.size(); i++) {
+            out.printf("  %d. %s%n", i + 1, label.apply(options.get(i)));
+        }
+        while (true) {
+            int index = integer(prompt);
+            if (index == 0) {
+                return null;
+            }
+            if (index >= 1 && index <= options.size()) {
+                return options.get(index - 1);
+            }
+            error("Выберите номер от 0 до " + options.size());
+        }
+    }
+
     private static BigDecimal parseDecimal(String raw) {
         try {
             return new BigDecimal(raw.replace(',', '.').replace(" ", ""));

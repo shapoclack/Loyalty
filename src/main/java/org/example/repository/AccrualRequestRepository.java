@@ -29,6 +29,10 @@ public class AccrualRequestRepository {
                 RETURNING *""", AccrualRequestRepository::map, status, id);
     }
 
+    public List<AccrualRequest> findAll(Connection c) {
+        return Jdbc.query(c, "SELECT * FROM accrual_request ORDER BY request_id", AccrualRequestRepository::map);
+    }
+
     public List<AccrualRequest> findByAccount(Connection c, int accountId) {
         return Jdbc.query(c, "SELECT * FROM accrual_request WHERE account_id = ? ORDER BY request_id",
                 AccrualRequestRepository::map, accountId);

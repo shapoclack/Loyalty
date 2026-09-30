@@ -4,6 +4,7 @@ import org.example.console.ConsoleIO;
 import org.example.console.MenuSection;
 import org.example.console.sections.AccountSection;
 import org.example.console.sections.CustomerSection;
+import org.example.console.sections.ExportSection;
 import org.example.console.sections.PurchaseSection;
 import org.example.console.sections.RedemptionSection;
 import org.example.console.sections.RuleSection;
@@ -20,12 +21,16 @@ import org.example.service.AccountService;
 import org.example.service.AccrualService;
 import org.example.service.CardNumberGenerator;
 import org.example.service.CustomerService;
+import org.example.service.ExportService;
+import org.example.service.OperationService;
 import org.example.service.PurchaseService;
 import org.example.service.RedemptionService;
 import org.example.service.RuleService;
 import org.example.service.accrual.AccrualCalculatorRegistry;
 import org.example.service.tier.ThresholdTierPolicy;
+import org.example.util.ExcelExporter;
 
+import java.nio.file.Path;
 import java.time.Clock;
 import java.util.List;
 
@@ -34,7 +39,7 @@ public class AppContext {
 
     private final List<MenuSection> sections;
 
-    public AppContext(Database db, ConsoleIO io) {
+    public AppContext(Database db, Path exportDir, ConsoleIO io) {
         Clock clock = Clock.systemDefaultZone();
 
         CustomerRepository customerRepo = new CustomerRepository();
@@ -58,13 +63,17 @@ public class AppContext {
         PurchaseService purchaseService = new PurchaseService(db, accountService, accountRepo, operationRepo,
                 accrualService, redemptionService, ThresholdTierPolicy.defaults(), clock);
         RuleService ruleService = new RuleService(db, accrualRuleRepo, redemptionRuleRepo, calculators);
+        ExportService exportService = new ExportService(db, exportDir, new ExcelExporter(), clock,
+                customerRepo, accountRepo, operationRepo, accrualRequestRepo, redemptionRequestRepo,
+                transactionRepo, accrualRuleRepo, redemptionRuleRepo);
 
         this.sections = List.of(
                 new CustomerSection(io, customerService, accountService),
                 new AccountSection(io, accountService),
-                new PurchaseSection(io, purchaseService),
+                new PurchaseSection(io, purchaseService, new OperationService(db, operationRepo), exportService),
                 new RedemptionSection(io, redemptionService, accountService, customerService),
-                new RuleSection(io, ruleService));
+                new RuleSection(io, ruleService),
+                new ExportSection(io, exportService));
     }
 
     public List<MenuSection> sections() {

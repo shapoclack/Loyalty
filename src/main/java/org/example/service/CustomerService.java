@@ -34,9 +34,7 @@ public class CustomerService {
 
     /** Регистрирует клиента и сразу открывает ему бонусный счёт. */
     public Registration register(String fullName, String phone, String email, LocalDate birthDate) {
-        if (fullName == null || fullName.isBlank()) {
-            throw new BusinessException("ФИО обязательно");
-        }
+        CustomerValidation.validate(fullName, phone, email, birthDate);
         String normalizedPhone = normalizePhone(phone);
         if (birthDate != null && birthDate.isAfter(LocalDate.now())) {
             throw new BusinessException("Дата рождения не может быть в будущем");
@@ -54,6 +52,21 @@ public class CustomerService {
     public Customer get(int customerId) {
         return db.inTransaction(c -> customers.findById(c, customerId))
                 .orElseThrow(() -> new EntityNotFoundException("Клиент #" + customerId + " не найден"));
+    }
+
+    public Customer update(int id, String name, String phone, String email, LocalDate birthDate,
+                           CustomerStatus status) {
+        CustomerValidation.validate(name, phone, email, birthDate);
+        if (status == null) throw new BusinessException("Выберите статус клиента");
+        String normalized = normalizePhone(phone);
+        return db.inTransaction(c -> {
+            customers.findById(c, id)
+                    .orElseThrow(() -> new EntityNotFoundException("Клиент не найден. Обновите список"));
+            customers.findByPhone(c, normalized).filter(other -> other.id() != id).ifPresent(other -> {
+                throw new BusinessException("Телефон уже используется другим клиентом");
+            });
+            return customers.update(c, id, name.trim(), normalized, blankToNull(email), birthDate, status);
+        });
     }
 
     public Customer getByPhone(String phone) {
@@ -102,11 +115,7 @@ public class CustomerService {
     }
 
     static String normalizePhone(String phone) {
-        String digits = phone == null ? "" : phone.replaceAll("[^0-9+]", "");
-        if (digits.replace("+", "").length() < 10) {
-            throw new BusinessException("Некорректный телефон: нужно минимум 10 цифр");
-        }
-        return digits;
+        return CustomerValidation.phone(phone);
     }
 
     private static String blankToNull(String value) {

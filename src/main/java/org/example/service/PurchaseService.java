@@ -69,9 +69,7 @@ public class PurchaseService {
 
     public PurchaseResult purchase(String cardNumber, BigDecimal amount, String externalId, String storeCode,
                                    BigDecimal bonusToRedeem) {
-        if (amount == null || amount.signum() <= 0) {
-            throw new BusinessException("Сумма покупки должна быть больше нуля");
-        }
+        PurchaseValidation.validate(amount, bonusToRedeem, externalId, storeCode);
         return db.inTransaction(c -> {
             LoyaltyAccount account = accountService.findByCard(c, cardNumber);
             if (externalId != null && operations.externalIdExists(c, externalId)) {

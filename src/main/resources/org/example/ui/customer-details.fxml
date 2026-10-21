@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<VBox xmlns:fx="http://javafx.com/fxml/1" fx:id="root" spacing="14" prefWidth="940" prefHeight="640" styleClass="page">
+    <Label fx:id="title" styleClass="heading"/>
+    <Label fx:id="contact" styleClass="muted" wrapText="true"/>
+    <TabPane tabClosingPolicy="UNAVAILABLE" VBox.vgrow="ALWAYS">
+        <tabs>
+            <Tab text="Счета"><VBox spacing="12">
+                <FlowPane hgap="10" vgap="8" styleClass="actions">
+                    <Button text="Открыть счёт" onAction="#openAccount" styleClass="primary"/>
+                    <Button fx:id="blockButton" text="Заблокировать карту" onAction="#block"/>
+                    <Button fx:id="unblockButton" text="Разблокировать карту" onAction="#unblock"/>
+                    <Button text="Обновить" onAction="#refresh"/>
+                </FlowPane>
+                <Label text="Выберите карту, чтобы посмотреть её движения на вкладке «История бонусов»." wrapText="true" styleClass="muted"/>
+                <TableView fx:id="accounts" VBox.vgrow="ALWAYS"/>
+            </VBox></Tab>
+            <Tab text="Покупки клиента"><TableView fx:id="operations"/></Tab>
+            <Tab text="История бонусов"><VBox spacing="10"><Label fx:id="transactionTitle"/><TableView fx:id="transactions" VBox.vgrow="ALWAYS"/></VBox></Tab>
+        </tabs>
+    </TabPane>
+    <Label fx:id="notice" wrapText="true"/>
+</VBox>

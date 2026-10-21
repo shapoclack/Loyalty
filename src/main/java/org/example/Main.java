@@ -14,6 +14,10 @@ public class Main {
     private static final String DEFAULT_EXPORT_DIR = "exports";
 
     public static void main(String[] args) {
+        if (args.length == 0 || !"--console".equals(args[0])) {
+            org.example.ui.LoyaltyApplication.main(args);
+            return;
+        }
         System.setProperty("java.awt.headless", "true");
         // Apache POI пишет логи через Log4j API; без этого он жалуется на отсутствие реализации логгера.
         if (System.getProperty("log4j.provider") == null) {

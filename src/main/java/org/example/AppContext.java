@@ -38,6 +38,15 @@ import java.util.List;
 public class AppContext {
 
     private final List<MenuSection> sections;
+    public final CustomerService customers;
+    public final AccountService accounts;
+    public final PurchaseService purchases;
+    public final OperationService operations;
+
+    /** Графическому интерфейсу не нужны консольные разделы и ввод из System.in. */
+    public AppContext(Database db) {
+        this(db, Path.of("exports"), null);
+    }
 
     public AppContext(Database db, Path exportDir, ConsoleIO io) {
         Clock clock = Clock.systemDefaultZone();
@@ -63,11 +72,15 @@ public class AppContext {
         PurchaseService purchaseService = new PurchaseService(db, accountService, accountRepo, operationRepo,
                 accrualService, redemptionService, ThresholdTierPolicy.defaults(), clock);
         RuleService ruleService = new RuleService(db, accrualRuleRepo, redemptionRuleRepo, calculators);
+        this.customers = customerService;
+        this.accounts = accountService;
+        this.purchases = purchaseService;
+        this.operations = new OperationService(db, operationRepo);
         ExportService exportService = new ExportService(db, exportDir, new ExcelExporter(), clock,
                 customerRepo, accountRepo, operationRepo, accrualRequestRepo, redemptionRequestRepo,
                 transactionRepo, accrualRuleRepo, redemptionRuleRepo);
 
-        this.sections = List.of(
+        this.sections = io == null ? List.of() : List.of(
                 new CustomerSection(io, customerService, accountService),
                 new AccountSection(io, accountService),
                 new PurchaseSection(io, purchaseService, new OperationService(db, operationRepo), exportService),

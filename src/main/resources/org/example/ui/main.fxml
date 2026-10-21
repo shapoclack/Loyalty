@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<BorderPane xmlns:fx="http://javafx.com/fxml/1" fx:id="root" styleClass="page">
+    <top><VBox spacing="16">
+        <HBox alignment="CENTER_LEFT" spacing="12">
+            <VBox HBox.hgrow="ALWAYS"><Label text="Loyalty" styleClass="brand"/><Label text="Клиенты программы лояльности" styleClass="muted"/></VBox>
+            <Button text="Статистика" onAction="#statistics"/>
+            <Button text="Обновить" onAction="#refresh"/>
+            <Button text="Экспорт CSV" onAction="#export"/>
+        </HBox>
+        <TextField fx:id="search" promptText="Поиск по ФИО, телефону или email…"/>
+        <HBox spacing="12" alignment="CENTER_LEFT">
+            <Label text="Статус"/><ComboBox fx:id="statusFilter" prefWidth="175"/>
+            <Label text="Уровень карты"/><ComboBox fx:id="tierFilter" prefWidth="150"/>
+            <Button text="Сбросить" onAction="#reset"/>
+            <Region HBox.hgrow="ALWAYS"/>
+            <Label fx:id="count" styleClass="muted"/>
+        </HBox>
+        <FlowPane hgap="10" vgap="8" styleClass="actions">
+            <Button text="+ Добавить клиента" onAction="#add" styleClass="primary"/>
+            <Button fx:id="editButton" text="Редактировать" onAction="#edit"/>
+            <Button fx:id="detailsButton" text="Счета и операции" onAction="#details"/>
+            <Button fx:id="purchaseButton" text="Новая покупка" onAction="#purchase"/>
+            <Button fx:id="deleteButton" text="Удалить" onAction="#delete" styleClass="danger"/>
+        </FlowPane>
+    </VBox></top>
+    <center><TableView fx:id="table" BorderPane.alignment="CENTER"/></center>
+    <bottom><VBox spacing="5" styleClass="footer">
+        <Label fx:id="notice" text="Подключение к базе данных…" wrapText="true"/>
+        <Label text="Выберите клиента для работы с записью. Нажмите заголовок столбца для сортировки; Shift — по нескольким столбцам." wrapText="true" styleClass="muted"/>
+    </VBox></bottom>
+</BorderPane>

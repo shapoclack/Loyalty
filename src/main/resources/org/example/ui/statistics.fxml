@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<VBox xmlns:fx="http://javafx.com/fxml/1" spacing="14" prefWidth="830" prefHeight="650" styleClass="page">
+    <Label text="Статистика программы" styleClass="heading"/>
+    <Label text="Все клиенты и счета на момент открытия окна. Период влияет только на показатели покупок. Для свежих данных обновите главное окно и откройте статистику снова." wrapText="true" styleClass="muted"/>
+    <FlowPane hgap="10" vgap="8">
+        <Label text="Покупки с"/><DatePicker fx:id="from" prefWidth="145" promptText="дд.мм.гггг"/>
+        <Label text="по"/><DatePicker fx:id="to" prefWidth="145" promptText="дд.мм.гггг"/>
+        <Button text="Рассчитать" onAction="#calculate" styleClass="primary"/>
+        <Button text="Весь период" onAction="#reset"/>
+    </FlowPane>
+    <Label fx:id="error" styleClass="error" wrapText="true"/>
+    <ScrollPane fitToWidth="true" VBox.vgrow="ALWAYS"><TilePane fx:id="metrics" hgap="12" vgap="12" prefColumns="3"/></ScrollPane>
+</VBox>

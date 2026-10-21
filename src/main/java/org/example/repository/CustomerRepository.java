@@ -54,6 +54,14 @@ public class CustomerRepository {
         Jdbc.update(c, "UPDATE customer SET status = ? WHERE customer_id = ?", status, id);
     }
 
+    public Customer update(Connection c, int id, String name, String phone, String email,
+                           LocalDate birthDate, CustomerStatus status) {
+        return Jdbc.returning(c, """
+                UPDATE customer SET full_name = ?, phone = ?, email = ?, birth_date = ?, status = ?
+                WHERE customer_id = ? RETURNING *""", CustomerRepository::map,
+                name, phone, email, birthDate, status, id);
+    }
+
     static Customer map(ResultSet rs) throws SQLException {
         return new Customer(
                 rs.getInt("customer_id"),

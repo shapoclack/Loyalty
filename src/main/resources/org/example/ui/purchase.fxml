@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<VBox xmlns:fx="http://javafx.com/fxml/1" fx:id="root" spacing="14" prefWidth="610" styleClass="page">
+    <Label text="Новая покупка" styleClass="heading"/>
+    <Label fx:id="customerName" styleClass="muted"/>
+    <GridPane hgap="14" vgap="12">
+        <columnConstraints><ColumnConstraints minWidth="150"/><ColumnConstraints hgrow="ALWAYS"/></columnConstraints>
+        <Label text="Карта *" GridPane.rowIndex="0"/>
+        <ComboBox fx:id="card" maxWidth="Infinity" GridPane.columnIndex="1" GridPane.rowIndex="0"/>
+        <Label text="Сумма покупки *" GridPane.rowIndex="1"/>
+        <TextField fx:id="amount" promptText="1250,50" GridPane.columnIndex="1" GridPane.rowIndex="1"/>
+        <Label text="Бонусы к списанию *" GridPane.rowIndex="2"/>
+        <TextField fx:id="bonus" promptText="0" GridPane.columnIndex="1" GridPane.rowIndex="2"/>
+        <Label text="Номер чека" GridPane.rowIndex="3"/>
+        <TextField fx:id="receipt" promptText="Уникальный номер (необязательно)" GridPane.columnIndex="1" GridPane.rowIndex="3"/>
+        <Label text="Код магазина" GridPane.rowIndex="4"/>
+        <TextField fx:id="store" promptText="Необязательно, до 32 символов" GridPane.columnIndex="1" GridPane.rowIndex="4"/>
+    </GridPane>
+    <Button text="Рассчитать лимит списания" onAction="#limit"/>
+    <Label fx:id="limit" wrapText="true" maxWidth="550" styleClass="muted"/>
+    <Label text="Дата покупки — текущая. Начисление и уровень рассчитываются автоматически по правилам базы данных." wrapText="true" maxWidth="550" styleClass="muted"/>
+    <Label fx:id="error" wrapText="true" maxWidth="550" minHeight="42" styleClass="error"/>
+    <HBox spacing="10" alignment="CENTER_RIGHT"><Button text="Отмена" onAction="#close" cancelButton="true"/><Button text="Зарегистрировать" onAction="#save" defaultButton="true" styleClass="primary"/></HBox>
+</VBox>

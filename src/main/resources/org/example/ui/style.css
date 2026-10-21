@@ -1,0 +1,55 @@
+.root {
+    -fx-font-family: "System";
+    -fx-font-size: 13px;
+    -fx-background-color: #f3f6fb;
+    -fx-text-fill: #17283d;
+    -fx-accent: #285ed7;
+}
+.page { -fx-padding: 24; }
+.brand { -fx-font-size: 30px; -fx-font-weight: bold; -fx-text-fill: #183560; }
+.heading { -fx-font-size: 23px; -fx-font-weight: bold; -fx-text-fill: #183560; }
+.muted { -fx-text-fill: #52657d; }
+.button {
+    -fx-padding: 9 14;
+    -fx-background-color: white;
+    -fx-text-fill: #203f6a;
+    -fx-border-color: #cad5e5;
+    -fx-border-radius: 6;
+    -fx-background-radius: 6;
+    -fx-cursor: hand;
+}
+.button:hover { -fx-background-color: #e6edfb; }
+.button:focused { -fx-border-color: #285ed7; }
+.button.primary { -fx-background-color: #285ed7; -fx-text-fill: white; -fx-border-color: #285ed7; }
+.button.primary:hover { -fx-background-color: #194cb9; }
+.button.danger { -fx-text-fill: #af283b; -fx-border-color: #e0b7bf; }
+.button:disabled { -fx-opacity: 0.45; }
+.text-field, .combo-box, .date-picker {
+    -fx-background-color: white;
+    -fx-border-color: #cad5e5;
+    -fx-border-radius: 5;
+    -fx-background-radius: 5;
+    -fx-min-height: 36;
+}
+.text-field:focused, .combo-box:focused, .date-picker:focused { -fx-border-color: #285ed7; }
+.table-view {
+    -fx-background-color: white;
+    -fx-border-color: #d8e1ee;
+    -fx-border-radius: 6;
+    -fx-background-radius: 6;
+    -fx-padding: 1;
+}
+.table-view .column-header, .table-view .filler { -fx-background-color: #e8eef8; -fx-size: 40; }
+.table-view .column-header .label { -fx-text-fill: #244265; -fx-alignment: CENTER_LEFT; -fx-padding: 0 10; }
+.table-row-cell { -fx-cell-size: 40; -fx-background-color: white; }
+.table-row-cell:odd { -fx-background-color: #f7f9fc; }
+.table-row-cell:selected { -fx-background-color: #dbe7ff; }
+.table-row-cell:selected .table-cell { -fx-text-fill: #102b56; }
+.table-cell { -fx-border-color: transparent; -fx-padding: 10; }
+.actions { -fx-padding: 12 0; }
+.footer { -fx-padding: 14 0 0 0; }
+.error { -fx-text-fill: #af283b; -fx-font-weight: bold; }
+.metric { -fx-padding: 18; -fx-background-color: white; -fx-background-radius: 8; -fx-border-color: #d8e1ee; -fx-border-radius: 8; }
+.metric-value { -fx-font-size: 24px; -fx-font-weight: bold; -fx-text-fill: #285ed7; }
+.scroll-pane, .scroll-pane > .viewport { -fx-background-color: transparent; }
+.tab-pane .tab-header-area .tab-header-background { -fx-background-color: #e8eef8; }

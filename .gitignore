@@ -42,3 +42,8 @@ build/
 
 ### Описание проекта (локально) ###
 /docs/PROJECT_DESCRIPTION.md
+
+### Локальные переменные окружения ###
+.env
+.env.*
+!.env.example

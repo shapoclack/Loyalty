@@ -47,6 +47,18 @@ class FxmlSmokeTest {
                 scene.getStylesheets().add(Ui.class.getResource("/org/example/ui/style.css").toExternalForm());
                 Stage stage = new Stage(); stage.setScene(scene); stage.show(); root.applyCss(); root.layout();
                 assertTrue(root.getLayoutBounds().getWidth() > 0);
+                if (window[1] instanceof CustomerFormController) {
+                    TextField name = (TextField) root.lookup("#name");
+                    String initial = name.getText();
+                    name.replaceText(0, name.getLength(), "Анна-Мария Ёлкина");
+                    assertEquals("Анна-Мария Ёлкина", name.getText());
+                    name.appendText("123");
+                    assertEquals("Анна-Мария Ёлкина", name.getText());
+                    name.replaceText(0, name.getLength(), "12345");
+                    assertEquals("Анна-Мария Ёлкина", name.getText());
+                    assertTrue(((Label) root.lookup("#error")).getText().contains("ФИО:"));
+                    name.replaceText(0, name.getLength(), initial);
+                }
                 if (window[1] instanceof CustomerFormController && ((TextField) root.lookup("#name")).getText().isEmpty()) {
                     root.lookupAll(".button").stream().filter(n -> ((Button) n).getText().equals("Сохранить"))
                             .forEach(n -> ((Button) n).fire());

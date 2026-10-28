@@ -37,6 +37,15 @@ public final class CustomerFormController {
             name.setText(customer.fullName()); phone.setText(customer.phone());
             email.setText(customer.email()); birthDate.setValue(customer.birthDate());
         }
+        name.setTextFormatter(new TextFormatter<String>(change -> {
+            if (!change.isContentChange()) return change;
+            if (!CustomerValidation.isNameInput(change.getControlNewText())) {
+                error.setText(CustomerValidation.NAME_FORMAT_MESSAGE);
+                return null;
+            }
+            if (CustomerValidation.NAME_FORMAT_MESSAGE.equals(error.getText())) error.setText("");
+            return change;
+        }));
     }
     @FXML private void save() {
         try {

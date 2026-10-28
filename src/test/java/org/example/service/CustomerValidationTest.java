@@ -6,6 +6,18 @@ import java.time.LocalDate;
 import static org.junit.jupiter.api.Assertions.*;
 
 class CustomerValidationTest {
+    @Test void acceptsNamesWithLettersSpacesHyphensAndAccents() {
+        for (String name : new String[]{"Иванов Иван Иванович", "Анна-Мария Ёлкина", "José Álvarez", "Jo\u0308rg"}) {
+            assertDoesNotThrow(() -> CustomerValidation.validate(name, "+79991234567", null, null));
+        }
+    }
+    @Test void rejectsDigitsAndOtherCharactersInNames() {
+        for (String name : new String[]{"12345", "Иван123", "Иван@Петров", "Анна🙂", "---", "-Иван", "Иван\nПетров"}) {
+            var error = assertThrows(BusinessException.class,
+                    () -> CustomerValidation.validate(name, "+79991234567", null, null));
+            assertTrue(error.getMessage().startsWith("ФИО:"));
+        }
+    }
     @Test void normalizesFormattedPhone() {
         assertEquals("+79991234567", CustomerValidation.phone("+7 (999) 123-45-67"));
     }

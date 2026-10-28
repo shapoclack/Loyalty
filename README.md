@@ -88,6 +88,81 @@ POSTGRES_PASSWORD=
 Для запуска готового JAR используйте ту ОС и архитектуру, на которых он собран:
 Maven включает соответствующие нативные библиотеки JavaFX.
 
+## Docker
+
+Docker Compose запускает отдельный PostgreSQL и JavaFX-приложение в виртуальном
+рабочем столе. Интерфейс доступен через браузер с помощью noVNC; XQuartz и локальная
+Java для этого варианта не нужны. Это тот же JavaFX-клиент, а не веб-версия приложения.
+
+### Настройка и запуск
+
+Нужны запущенный Docker Engine / Docker Desktop и Docker Compose v2.
+В `.env` должны быть заполнены `POSTGRES_DB`, `POSTGRES_USER` и
+`DOCKER_POSTGRES_PASSWORD`. Для новой установки скопируйте `.env.example` в `.env`,
+укажите имя пользователя и задайте отдельный пароль контейнерной БД.
+Его можно сгенерировать командой `openssl rand -hex 32`.
+
+```ini
+DOCKER_POSTGRES_PASSWORD=your_random_password
+DOCKER_POSTGRES_PORT=55432
+DOCKER_DESKTOP_PORT=6080
+```
+
+```bash
+docker compose config --quiet       # проверить конфигурацию без вывода секретов
+docker compose build app            # собрать образ loyalty-desktop:local
+docker compose up -d --wait         # запустить базу и интерфейс
+docker compose ps
+```
+
+Откройте [JavaFX в браузере](http://localhost:6080/vnc.html?autoconnect=true&resize=scale).
+При изменении `DOCKER_DESKTOP_PORT` замените порт в ссылке. Внутренний VNC-порт наружу
+не публикуется; браузерный интерфейс и PostgreSQL привязаны к `127.0.0.1`.
+
+Сборка многоэтапная: Maven компилирует и проверяет проект внутри Linux-контейнера,
+в итоговый образ копируется JAR без Maven и исходников. Контейнер использует Java 25 LTS
+с `maven.compiler.release=25`; локальная сборка на Java 27 сохраняется.
+Для JavaFX 25.0.1 используется `linux/amd64`, поскольку Linux ARM64-библиотеки
+этой версии отсутствуют в Maven Central. На Apple Silicon приложение запускается
+через эмуляцию Docker Desktop; PostgreSQL использует родную архитектуру.
+При сборке без Compose указывайте `docker build --platform=linux/amd64 -t loyalty-desktop:local .`.
+`.env`, настройки `db.properties`, локальные JAR, Git и выгрузки исключены из контекста сборки.
+В контейнер передаются только параметры подключения, JWT и bootstrap-пароли туда не передаются.
+
+### Данные и выгрузки
+
+- Данные PostgreSQL хранятся в именованном томе `postgres-data` проекта Compose.
+- Это отдельная база: существующая локальная PostgreSQL не переносится и не изменяется.
+- Схема и демонстрационные данные создаются SQL-скриптами при первом запуске пустого тома.
+- Приложение подключается к `db:5432`; с компьютера база доступна на `localhost:55432`.
+- При экспорте выбирайте `/home/loyalty/exports`: это каталог `exports/` на компьютере.
+  Файлы в других каталогах контейнера не сохраняются при его пересоздании.
+- На Linux пользователь контейнера имеет UID/GID `10001`; каталог `exports/` должен
+  разрешать ему запись. В Docker Desktop проверьте доступ к каталогу проекта.
+- Изменение пароля в `.env` не меняет пароль уже созданного пользователя в существующем томе.
+
+```bash
+docker compose logs --tail=100 app db
+docker compose down                # остановить и удалить контейнеры, сохранив том БД
+```
+
+Закрытие окна JavaFX завершает контейнер приложения. Вернуть интерфейс можно командой
+`docker compose up -d app`. Обновление кода требует повторной сборки образа.
+
+### Дополнительные варианты
+
+Только база в Docker с локальным JavaFX: `docker compose up -d --wait db`, затем
+запускайте Maven с переменными процесса `LOYALTY_DB_URL=jdbc:postgresql://localhost:55432/loyalty`,
+`LOYALTY_DB_USER` и `LOYALTY_DB_PASSWORD`, соответствующими `POSTGRES_USER` и
+`DOCKER_POSTGRES_PASSWORD`. Имя базы и порт замените своими при необходимости.
+
+Консольный режим в контейнере:
+
+```bash
+docker compose build console
+docker compose run --rm console
+```
+
 ## Графический интерфейс
 
 Главное окно показывает клиентов из существующей базы PostgreSQL. Кнопки редактирования,

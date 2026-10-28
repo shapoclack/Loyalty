@@ -1,0 +1,64 @@
+name: loyalty
+
+x-client-environment: &client-environment
+  LOYALTY_DB_URL: jdbc:postgresql://db:5432/${POSTGRES_DB:-loyalty}
+  LOYALTY_DB_USER: ${POSTGRES_USER:-loyalty_app}
+  LOYALTY_DB_PASSWORD: ${DOCKER_POSTGRES_PASSWORD:?Укажите DOCKER_POSTGRES_PASSWORD в .env}
+
+services:
+  db:
+    image: postgres:17-bookworm
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-loyalty}
+      POSTGRES_USER: ${POSTGRES_USER:-loyalty_app}
+      POSTGRES_PASSWORD: ${DOCKER_POSTGRES_PASSWORD:?Укажите DOCKER_POSTGRES_PASSWORD в .env}
+    ports:
+      - "127.0.0.1:${DOCKER_POSTGRES_PORT:-55432}:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ./src/main/resources/db/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
+      - ./src/main/resources/db/seed.sql:/docker-entrypoint-initdb.d/02-seed.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -h 127.0.0.1 -U \"$$POSTGRES_USER\" -d \"$$POSTGRES_DB\""]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+      start_period: 10s
+
+  app:
+    platform: linux/amd64
+    image: loyalty-desktop:local
+    build:
+      context: .
+      target: desktop
+    environment:
+      <<: *client-environment
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "127.0.0.1:${DOCKER_DESKTOP_PORT:-6080}:6080"
+    volumes:
+      - ./exports:/home/loyalty/exports
+    shm_size: 256mb
+
+  console:
+    platform: linux/amd64
+    image: loyalty-console:local
+    profiles: ["console"]
+    build:
+      context: .
+      target: console
+    environment:
+      <<: *client-environment
+    depends_on:
+      db:
+        condition: service_healthy
+    stdin_open: true
+    tty: true
+    volumes:
+      - ./exports:/home/loyalty/exports
+
+volumes:
+  postgres-data:
